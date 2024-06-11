@@ -1,21 +1,37 @@
 import json
 from datetime import datetime
 
+
 def mask_card_number(card_number):
+    """
+    Маскировка номера карты.
+    """
     # Форматирование номера карты
     masked_number = card_number[:4] + " " + card_number[4:6] + "** " + "*" * 4 + " " + card_number[-4:]
     return masked_number
 
+
 def mask_account_number(account_number):
+    """
+    Маскировка номера счета.
+    """
     # Форматирование номера счета
     masked_number = "**" + account_number[-4:]
     return masked_number
 
+
 def format_date(date_str):
+    """
+    Форматирование даты.
+    """
     date_obj = datetime.fromisoformat(date_str)
     return date_obj.strftime("%d.%m.%Y")
 
+
 def format_operation(operation):
+    """
+    Форматирование операции.
+    """
     date = format_date(operation["date"])
     description = operation["description"]
 
@@ -23,12 +39,14 @@ def format_operation(operation):
     to = operation["to"]
 
     # Определяем тип отправителя (карта или счет)
-    if from_.startswith("Visa") or from_.startswith("Maestro"):
+    if from_ and (from_.startswith("Visa") or from_.startswith("Maestro")):
         from_name = " ".join(from_.split()[:-1])  # Получаем название карты без номера
         from_masked = mask_card_number(from_.split()[-1])
+        from_formatted = f"{from_name} {from_masked}"
+    elif from_:
+        from_formatted = mask_account_number(from_)
     else:
-        from_name = "Счет"
-        from_masked = mask_account_number(from_)
+        from_formatted = ""
 
     # Определяем тип получателя (счет)
     to_name = "Счет"
@@ -37,10 +55,18 @@ def format_operation(operation):
     amount = operation["operationAmount"]["amount"]
     currency_name = operation["operationAmount"]["currency"]["name"]
 
-    formatted_operation = f"{date} {description}\n{from_name} {from_masked} -> {to_name} {to_masked}\n{amount} {currency_name}\n"
+    if from_formatted:
+        formatted_operation = f"{date} {description}\n{from_formatted} -> {to_name} {to_masked}\n{amount} {currency_name}\n"
+    else:
+        formatted_operation = f"{date} {description}\n{to_name} {to_masked}\n{amount} {currency_name}\n"
+
     return formatted_operation
 
+
 def get_last_operations(file_path, n=5):
+    """
+    Получение последних операций.
+    """
     with open(file_path, "r", encoding="utf-8") as file:
         data = json.load(file)
 
@@ -50,11 +76,16 @@ def get_last_operations(file_path, n=5):
     formatted_operations = [format_operation(op) for op in sorted_operations]
     return formatted_operations
 
+
 def main():
+    """
+    Основная функция.
+    """
     file_path = "E:\\Projects\\operations.json"
     last_operations = get_last_operations(file_path)
     for op in last_operations:
         print(op)
+
 
 if __name__ == "__main__":
     main()
