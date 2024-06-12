@@ -6,7 +6,6 @@ def mask_card_number(card_number):
     """
     Маскировка номера карты.
     """
-    # Форматирование номера карты
     masked_number = card_number[:4] + " " + card_number[4:6] + "** " + "*" * 4 + " " + card_number[-4:]
     return masked_number
 
@@ -15,7 +14,6 @@ def mask_account_number(account_number):
     """
     Маскировка номера счета.
     """
-    # Форматирование номера счета
     masked_number = "**" + account_number[-4:]
     return masked_number
 
@@ -38,9 +36,8 @@ def format_operation(operation):
     from_ = operation.get("from", "")
     to = operation["to"]
 
-    # Определяем тип отправителя (карта или счет)
     if from_ and (from_.startswith("Visa") or from_.startswith("Maestro")):
-        from_name = " ".join(from_.split()[:-1])  # Получаем название карты без номера
+        from_name = " ".join(from_.split()[:-1])
         from_masked = mask_card_number(from_.split()[-1])
         from_formatted = f"{from_name} {from_masked}"
     elif from_:
@@ -48,7 +45,6 @@ def format_operation(operation):
     else:
         from_formatted = ""
 
-    # Определяем тип получателя (счет)
     to_name = "Счет"
     to_masked = mask_account_number(to)
 
@@ -75,17 +71,3 @@ def get_last_operations(file_path, n=5):
 
     formatted_operations = [format_operation(op) for op in sorted_operations]
     return formatted_operations
-
-
-def main():
-    """
-    Основная функция.
-    """
-    file_path = "E:\\Projects\\operations.json"
-    last_operations = get_last_operations(file_path)
-    for op in last_operations:
-        print(op)
-
-
-if __name__ == "__main__":
-    main()
